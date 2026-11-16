@@ -64,14 +64,14 @@ export const ENEMY_TYPES = {
 export const WAVE_TABLE = [
   { drifter: 6 },
   { drifter: 8, wisp: 3 },
-  { drifter: 9, wisp: 5, spitter: 2 },
-  { drifter: 10, wisp: 6, spitter: 3, splitter: 2, brute: 1 },
-  { drifter: 8, wisp: 6, spitter: 3, splitter: 3, brute: 1, boss: 1 },
-  { drifter: 12, wisp: 8, spitter: 4, splitter: 3, brute: 2 },
-  { drifter: 12, wisp: 10, spitter: 5, splitter: 4, brute: 2 },
-  { drifter: 14, wisp: 12, spitter: 6, splitter: 5, brute: 3 },
-  { drifter: 16, wisp: 14, spitter: 7, splitter: 6, brute: 3 },
-  { drifter: 14, wisp: 12, spitter: 6, splitter: 5, brute: 2, boss: 1 },
+  { drifter: 9, wisp: 5, spitter: 2, orbiter: 2 },
+  { drifter: 10, wisp: 6, spitter: 3, splitter: 2, brute: 1, orbiter: 2, sniper: 1 },
+  { drifter: 8, wisp: 6, spitter: 3, splitter: 3, brute: 1, boss: 1, orbiter: 2, sniper: 1 },
+  { drifter: 12, wisp: 8, spitter: 4, splitter: 3, brute: 2, orbiter: 3, sniper: 2 },
+  { drifter: 12, wisp: 10, spitter: 5, splitter: 4, brute: 2, orbiter: 4, sniper: 2 },
+  { drifter: 14, wisp: 12, spitter: 6, splitter: 5, brute: 3, orbiter: 4, sniper: 3 },
+  { drifter: 16, wisp: 14, spitter: 7, splitter: 6, brute: 3, orbiter: 5, sniper: 3 },
+  { drifter: 14, wisp: 12, spitter: 6, splitter: 5, brute: 2, boss: 1, orbiter: 4, sniper: 2 },
 ];
 
 export const FINAL_WAVE = 10;
