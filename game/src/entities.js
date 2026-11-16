@@ -114,8 +114,15 @@ export function createParticle(x, y, color, count, speed, life, size) {
   return parts;
 }
 
-export function createFloater(x, y, text, color) {
-  return { x, y, text, color, life: 0.9, maxLife: 0.9, dead: false };
+export function createFloater(x, y, text, color, opts = {}) {
+  const life = opts.life ?? 0.9;
+  return {
+    x, y, text, color,
+    life, maxLife: life,
+    size: opts.size ?? 15, // damage numbers render smaller than score callouts
+    vy: opts.vy ?? 42, // rise speed in px/s
+    dead: false,
+  };
 }
 
 export function createPowerup(x, y, kind, rng) {
@@ -438,7 +445,7 @@ export function updateParticles(game, dt) {
     if (p.life <= 0) p.dead = true;
   }
   for (const f of game.floaters) {
-    f.y -= 42 * dt;
+    f.y -= (f.vy ?? 42) * dt;
     f.life -= dt;
     if (f.life <= 0) f.dead = true;
   }

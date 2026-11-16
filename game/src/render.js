@@ -288,6 +288,19 @@ function drawPlayer(ctx, game) {
   ctx.closePath();
   ctx.fill();
   ctx.shadowBlur = 0;
+  // Muzzle flash: a bright star at the nose for a few frames after each shot.
+  if (p.muzzle > 0) {
+    const a = Math.max(0, Math.min(1, p.muzzle / 0.055));
+    ctx.globalAlpha = a;
+    ctx.shadowColor = PALETTE.bullet;
+    ctx.shadowBlur = 16;
+    ctx.fillStyle = '#fff7cc';
+    ctx.beginPath();
+    ctx.arc(24, 0, 5 + 5 * a, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+  }
   ctx.restore();
   // Shield ring.
   if (p.shieldTime > 0) {
@@ -316,9 +329,9 @@ function drawParticles(ctx, game) {
 function drawFloaters(ctx, game) {
   ctx.save();
   ctx.textAlign = 'center';
-  ctx.font = '700 15px system-ui, sans-serif';
   for (const f of game.floaters) {
     ctx.globalAlpha = Math.max(0, f.life / f.maxLife);
+    ctx.font = `700 ${f.size || 15}px system-ui, sans-serif`;
     ctx.fillStyle = f.color;
     ctx.fillText(f.text, f.x, f.y);
   }

@@ -372,6 +372,19 @@ export class Game {
     enemy.hp -= damage;
     enemy.flash = 0.08;
     this.addParticles(bullet.x, bullet.y, '#ffffff', 3, 140, 0.2, 2);
+    // Boss hits spark harder, so chewing through the Herald feels physical.
+    if (enemy.kind === 'boss') {
+      this.addParticles(bullet.x, bullet.y, PALETTE.boss, 5, 210, 0.3, 3);
+    }
+    // Floating damage number on every hit; crits read bigger and hotter.
+    if (this.floaters.length < 70) {
+      this.floaters.push(createFloater(
+        bullet.x + (Math.random() * 16 - 8), bullet.y - 6,
+        `${Math.round(damage)}`,
+        crit ? '#ffb347' : 'rgba(255,255,255,0.95)',
+        crit ? { life: 0.7, size: 20, vy: 62 } : { life: 0.5, size: 13, vy: 58 },
+      ));
+    }
     this.audio.sfx('hit');
     if (enemy.hp <= 0 && !enemy.dead) {
       enemy.dead = true;
@@ -403,13 +416,13 @@ export class Game {
     const big = enemy.kind === 'boss' || enemy.kind === 'brute';
     this.addParticles(enemy.x, enemy.y, this.enemyColor(enemy.kind), big ? 34 : 16, big ? 320 : 240, 0.55, 3.5);
     this.audio.sfx(big ? 'bigExplode' : 'explode');
-    this.shake = Math.min(14, this.shake + (big ? 10 : 3));
-    if (big) this.hitStop = 0.05;
+    // Juice scaled to the event: every kill stops time for a beat and kicks the
+    // camera; bigger prey kicks harder, the Herald hardest of all.
+    this.shake = Math.min(16, this.shake + (enemy.kind === 'boss' ? 14 : big ? 8 : enemy.kind === 'mini' ? 1.5 : 3.5));
+    this.hitStop = enemy.kind === 'boss' ? 0.12 : big ? 0.06 : 0.022;
     if (enemy.kind === 'splitter') splitEnemy(this, enemy);
     if (enemy.kind === 'boss') {
       this.addParticles(enemy.x, enemy.y, PALETTE.boss, 60, 420, 1, 4);
-      this.shake = 16;
-      this.hitStop = 0.12;
       this.floaters.push(createFloater(ARENA.width / 2, 200, 'HERALD DOWN', PALETTE.boss));
     }
     // Power-up drop.
