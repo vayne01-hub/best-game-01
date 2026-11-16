@@ -1,7 +1,7 @@
 // Entities: the player, enemies, bullets, particles, power-ups and floating text.
 // Plain objects with update/draw helpers; the Game owns the lists and the loop.
 
-import { ARENA, ENEMY_TYPES, PALETTE, PLAYER } from './config.js';
+import { ARENA, COMBO_WINDOW, ENEMY_TYPES, PALETTE, PLAYER } from './config.js';
 import { clamp, distanceSq, randomAngle, randomChoice, randomRange } from './random.js';
 
 export function createPlayer() {
@@ -22,6 +22,12 @@ export function createPlayer() {
     projectiles: 1,
     pierce: 0,
     ricochet: false,
+    critChance: 0, // Prism Rounds upgrade
+    siphon: 0, // Siphon Core upgrade: level, heals every 4th kill
+    siphonCounter: 0,
+    dashNova: false, // Dash Nova upgrade
+    comboWindow: COMBO_WINDOW, // Combo Weave upgrade stretches this
+    muzzle: 0, // seconds of muzzle flash left to draw
     magnetRadius: PLAYER.magnetRadius,
     dashCooldown: PLAYER.dashCooldown,
     dashCharges: PLAYER.dashCharges,
@@ -146,6 +152,16 @@ export function updatePlayer(player, input, dt, game) {
     player.invuln = Math.max(player.invuln, PLAYER.invulnTime);
     game.audio.sfx('dash');
     game.addParticles(player.x, player.y, PALETTE.playerGlow, 10, 220, 0.35, 3);
+    // Dash Nova upgrade: the dash detonates, hurting everything close by.
+    if (player.dashNova) {
+      game.addParticles(player.x, player.y, PALETTE.core, 26, 300, 0.45, 3.5);
+      game.shake = Math.min(14, (game.shake || 0) + 5);
+      for (const e of [...game.enemies]) {
+        if (!e.dead && distanceSq(e.x, e.y, player.x, player.y) < 140 * 140) {
+          game.damageEnemy(e, 35, { x: e.x, y: e.y });
+        }
+      }
+    }
   }
   if (player.dashRecharge > 0) {
     player.dashRecharge -= dt;
@@ -167,6 +183,7 @@ export function updatePlayer(player, input, dt, game) {
   player.x = clamp(player.x + player.vx * dt, player.radius, ARENA.width - player.radius);
   player.y = clamp(player.y + player.vy * dt, player.radius, ARENA.height - player.radius);
   if (player.invuln > 0) player.invuln -= dt;
+  if (player.muzzle > 0) player.muzzle -= dt;
   if (player.shieldTime > 0) player.shieldTime -= dt;
   if (player.overdriveTime > 0) player.overdriveTime -= dt;
 
@@ -193,6 +210,7 @@ export function updatePlayer(player, input, dt, game) {
 }
 
 export function firePlayerBullets(game, player) {
+  player.muzzle = 0.055;
   const n = player.projectiles;
   const spread = 0.14;
   for (let i = 0; i < n; i++) {

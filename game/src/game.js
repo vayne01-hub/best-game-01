@@ -307,7 +307,14 @@ export class Game {
         const rr = b.radius + e.radius;
         if (distanceSq(b.x, b.y, e.x, e.y) < rr * rr) {
           b.hitSet.add(e);
-          this.damageEnemy(e, b.damage, b);
+          // Prism Rounds: a rolled crit doubles this hit's damage.
+          let dmg = b.damage;
+          let crit = false;
+          if (player.critChance > 0 && Math.random() < player.critChance) {
+            crit = true;
+            dmg *= 2;
+          }
+          this.damageEnemy(e, dmg, b, crit);
           if (b.pierce > 0) {
             b.pierce -= 1;
           } else if (b.ricochet) {
@@ -361,7 +368,7 @@ export class Game {
     }
   }
 
-  damageEnemy(enemy, damage, bullet) {
+  damageEnemy(enemy, damage, bullet, crit = false) {
     enemy.hp -= damage;
     enemy.flash = 0.08;
     this.addParticles(bullet.x, bullet.y, '#ffffff', 3, 140, 0.2, 2);
@@ -378,7 +385,19 @@ export class Game {
     this.score += gained;
     this.kills += 1;
     this.combo += 1;
-    this.comboTimer = COMBO_WINDOW;
+    this.comboTimer = this.player.comboWindow ?? COMBO_WINDOW;
+    // Siphon Core: every 4th kill feeds a little hull back to the warden.
+    if (this.player.siphon > 0 && this.player.alive) {
+      this.player.siphonCounter += 1;
+      if (this.player.siphonCounter >= 4) {
+        this.player.siphonCounter = 0;
+        const heal = 3 * this.player.siphon;
+        if (this.player.hp < this.player.maxHp) {
+          this.player.hp = Math.min(this.player.maxHp, this.player.hp + heal);
+          this.floaters.push(createFloater(this.player.x, this.player.y - 26, `+${heal} HP`, '#7dff9a'));
+        }
+      }
+    }
     const color = enemy.kind === 'boss' ? PALETTE.boss : PALETTE.gold;
     this.floaters.push(createFloater(enemy.x, enemy.y - 14, `+${gained}`, color));
     const big = enemy.kind === 'boss' || enemy.kind === 'brute';
@@ -456,6 +475,7 @@ export class Game {
   enemyColor(kind) {
     return {
       drifter: PALETTE.drifter, wisp: PALETTE.wisp, spitter: PALETTE.spitter,
+      sniper: PALETTE.sniper, orbiter: PALETTE.orbiter,
       splitter: PALETTE.splitter, mini: PALETTE.mini, brute: PALETTE.brute, boss: PALETTE.boss,
     }[kind] || PALETTE.particle;
   }

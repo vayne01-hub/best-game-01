@@ -135,6 +135,26 @@ export const UPGRADE_POOL = [
     desc: 'Heal 50 and +10 max HP.',
     apply: (p) => { p.maxHp += 10; p.hp = Math.min(p.maxHp, p.hp + 50); },
   },
+  {
+    id: 'prism', name: 'Prism Rounds', icon: '◆',
+    desc: '25% chance for a shot to crit, dealing double damage.',
+    apply: (p) => { p.critChance = Math.min(0.6, p.critChance + 0.25); },
+  },
+  {
+    id: 'siphon', name: 'Siphon Core', icon: '✜',
+    desc: 'Every 4th kill restores 3 HP.',
+    apply: (p) => { p.siphon += 1; },
+  },
+  {
+    id: 'dashnova', name: 'Dash Nova', icon: '✹',
+    desc: 'Dashing unleashes a nova that deals 35 damage to nearby enemies.',
+    apply: (p) => { p.dashNova = true; },
+  },
+  {
+    id: 'weave', name: 'Combo Weave', icon: '∿',
+    desc: '+60% combo window — chains last much longer.',
+    apply: (p) => { p.comboWindow *= 1.6; },
+  },
 ];
 
 export const POWERUP_TYPES = ['heart', 'shield', 'overdrive', 'bomb'];
