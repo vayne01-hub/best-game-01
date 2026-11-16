@@ -4,7 +4,7 @@
 // the game's own update and render code — nothing here is a mock.
 
 import { ARENA } from './config.js';
-import { createEnemy } from './entities.js';
+import { createEnemy, createFloater } from './entities.js';
 import { mulberry32 } from './random.js';
 
 const STEP = 1 / 60;
@@ -72,6 +72,105 @@ export function runShot(game, hud, scene, seed) {
     game.player.y = 430;
     game.player.angle = Math.atan2(300 - 430, 880 - 470);
     game.input.setMouse(880, 300, true);
+    game.render();
+    hud.sync(game);
+  } else if (scene === 'action') {
+    // Mid-action: the warden mid-fight — damage numbers, a death burst, a sniper
+    // telegraph and a live muzzle flash all in one frame.
+    game.startGame();
+    game.state = 'playing';
+    game.wave = 4;
+    game.score = 3870;
+    game.combo = 7;
+    game.comboTimer = 2.0;
+    game.player.hp = 82;
+    game.player.shieldTime = 3;
+    game.player.x = 430;
+    game.player.y = 440;
+    hud.bannerEl.classList.add('hidden');
+    seedEnemies(game, [
+      ['drifter', 830, 230], ['drifter', 905, 390], ['wisp', 765, 525],
+      ['wisp', 985, 185], ['spitter', 1015, 305], ['splitter', 705, 155],
+      ['sniper', 1090, 150], ['orbiter', 640, 520], ['brute', 1085, 490],
+    ], rng);
+    game.spawnQueue = [];
+    simulate(game, 1.6, (t) => {
+      const a = t * 1.4;
+      scriptedInput(game, 880 + Math.cos(a) * 260, 330 + Math.sin(a) * 180, Math.cos(a * 0.7), Math.sin(a * 0.7), true);
+    });
+    game.player.x = 470;
+    game.player.y = 430;
+    game.player.angle = Math.atan2(300 - 430, 880 - 470);
+    game.input.setMouse(880, 300, true);
+    // Stage the juice deterministically: one hit's damage number, one kill burst,
+    // one sniper mid-telegraph, and the muzzle flash on the warden's nose.
+    const target = game.enemies.find((e) => e.kind === 'drifter') || game.enemies[0];
+    if (target) game.damageEnemy(target, 12, { x: target.x, y: target.y });
+    const mini = createEnemy('mini', 770, 315, game.wave, rng);
+    game.enemies.push(mini);
+    game.damageEnemy(mini, 999, { x: mini.x, y: mini.y });
+    game.prune();
+    const sniper = game.enemies.find((e) => e.kind === 'sniper');
+    if (sniper) {
+      sniper.chargeState = 'aim';
+      sniper.chargeTimer = 0.4;
+      sniper.aimAngle = Math.atan2(game.player.y - sniper.y, game.player.x - sniper.x);
+    }
+    game.player.muzzle = 0.055;
+    game.render();
+    hud.sync(game);
+  } else if (scene === 'upgrade') {
+    // The between-wave draft: three real cards from the real pool, seeded.
+    game.startGame();
+    game.wave = 3;
+    game.score = 3200;
+    game.spawnQueue = [];
+    game.enemies = [];
+    game.waveCleared(); // sets state 'upgrade' and drafts 3 cards via the seeded RNG
+    hud.bannerEl.classList.add('hidden');
+    game.render();
+    hud.sync(game);
+  } else if (scene === 'late') {
+    // Late-wave chaos: wave 9, a surge lands mid-fight, every threat on screen.
+    game.startGame();
+    game.state = 'playing';
+    game.wave = 9;
+    game.score = 21460;
+    game.combo = 11;
+    game.comboTimer = 2.2;
+    game.player.hp = 52;
+    game.player.shieldTime = 3;
+    game.player.x = 400;
+    game.player.y = 500;
+    hud.bannerEl.classList.add('hidden');
+    seedEnemies(game, [
+      ['brute', 1020, 430], ['splitter', 760, 190], ['splitter', 950, 560],
+      ['spitter', 1100, 240], ['sniper', 1120, 120], ['orbiter', 680, 330],
+      ['orbiter', 560, 160], ['wisp', 860, 300], ['drifter', 990, 350],
+    ], rng);
+    game.spawnQueue = [];
+    game.surgeTimer = 0.9; // the surge lands near the end of the take
+    game.surgeCount = 0;
+    simulate(game, 1.5, (t) => {
+      const a = t * 1.2;
+      scriptedInput(game, 900, 320, Math.cos(a), Math.sin(a), true);
+    });
+    game.player.x = 430;
+    game.player.y = 490;
+    game.player.angle = Math.atan2(320 - 490, 900 - 430);
+    game.input.setMouse(900, 320, true);
+    const brute = game.enemies.find((e) => e.kind === 'brute') || game.enemies[0];
+    if (brute) game.damageEnemy(brute, 12, { x: brute.x, y: brute.y });
+    const sniper = game.enemies.find((e) => e.kind === 'sniper');
+    if (sniper) {
+      sniper.chargeState = 'aim';
+      sniper.chargeTimer = 0.62;
+      sniper.aimAngle = Math.atan2(game.player.y - sniper.y, game.player.x - sniper.x);
+    }
+    if (!game.floaters.some((f) => f.text === 'VOID SURGE')) {
+      game.floaters.push(createFloater(ARENA.width / 2, 150, 'VOID SURGE', '#ff5470'));
+    }
+    game.player.muzzle = 0.055;
     game.render();
     hud.sync(game);
   } else if (scene === 'boss') {
