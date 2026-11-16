@@ -15,6 +15,8 @@ export const PALETTE = {
   drifter: '#ff6b6b',
   wisp: '#c77dff',
   spitter: '#5eead4',
+  sniper: '#38bdf8',
+  orbiter: '#4ade80',
   splitter: '#f472b6',
   mini: '#fb923c',
   brute: '#fb7185',
@@ -49,6 +51,8 @@ export const ENEMY_TYPES = {
   drifter: { hp: 22, speed: 74, radius: 14, damage: 10, score: 50, kind: 'drifter' },
   wisp: { hp: 11, speed: 158, radius: 10, damage: 8, score: 80, kind: 'wisp' },
   spitter: { hp: 34, speed: 52, radius: 16, damage: 12, score: 120, kind: 'spitter' },
+  sniper: { hp: 30, speed: 58, radius: 13, damage: 16, score: 180, kind: 'sniper' },
+  orbiter: { hp: 26, speed: 98, radius: 12, damage: 10, score: 140, kind: 'orbiter' },
   splitter: { hp: 44, speed: 62, radius: 18, damage: 12, score: 150, kind: 'splitter' },
   mini: { hp: 9, speed: 132, radius: 8, damage: 6, score: 30, kind: 'mini' },
   brute: { hp: 130, speed: 40, radius: 26, damage: 20, score: 250, kind: 'brute' },
@@ -71,6 +75,9 @@ export const WAVE_TABLE = [
 ];
 
 export const FINAL_WAVE = 10;
+// Late-wave modifier: on waves 8-10 the Void periodically surges — extra enemies
+// pour in at the edges while the wave is still being fought.
+export const SURGE = { firstWave: 8, interval: 15, maxPerWave: 3, count: 5 };
 export const COMBO_WINDOW = 2.5; // seconds between kills to keep the combo alive
 export const COMBO_STEP = 4; // kills per +1 multiplier, capped at x8
 export const POWERUP_DROP_CHANCE = 0.12;
