@@ -56,8 +56,11 @@ export function createEnemy(kind, x, y, wave, rng) {
     flash: 0,
     wobble: randomRange(rng, 0, Math.PI * 2),
     shootTimer: randomRange(rng, 1.2, 2.4),
-    chargeState: 'idle', // brute: idle -> windup -> charge -> recover
+    chargeState: 'idle', // brute: idle -> windup -> charge -> recover; sniper: idle -> aim -> cooldown
     chargeTimer: 0,
+    aimAngle: 0, // sniper: locked firing angle during the telegraph
+    orbitDir: rng() < 0.5 ? -1 : 1, // orbiter: which way it circles the player
+    orbitPhase: randomRange(rng, 0, Math.PI * 2),
     attackTimer: randomRange(rng, 2, 4), // boss
     phase: 1, // boss
     summoned: false,
@@ -244,6 +247,62 @@ export function updateEnemies(game, dt) {
           e.shootTimer = 2.2;
           const a = Math.atan2(dy, dx);
           game.enemyBullets.push(createBullet(e.x, e.y, a, 210, e.damage, false, 0, false));
+          game.audio.sfx('hit');
+        }
+        break;
+      }
+      case 'sniper': {
+        // Hold long range, telegraph a shot (the aim locks partway through, so a
+        // moving warden can dodge it), then fire one fast bolt and recover.
+        const want = 430;
+        const radial = dist > want + 50 ? 1 : dist < want - 60 ? -0.8 : 0;
+        e.orbitPhase += dt * 0.7;
+        const sx = -ny * Math.sin(e.orbitPhase) * 0.35;
+        const sy = nx * Math.sin(e.orbitPhase) * 0.35;
+        const moveScale = e.chargeState === 'aim' ? 0.15 : 1;
+        e.vx += ((nx * radial + sx) * e.speed * moveScale - e.vx) * Math.min(1, dt * 3);
+        e.vy += ((ny * radial + sy) * e.speed * moveScale - e.vy) * Math.min(1, dt * 3);
+        if (e.chargeState === 'aim') {
+          e.chargeTimer += dt;
+          if (e.chargeTimer < 0.55) e.aimAngle = Math.atan2(dy, dx);
+          if (e.chargeTimer >= 0.85) {
+            game.enemyBullets.push(createBullet(e.x, e.y, e.aimAngle, 560, e.damage, false, 0, false));
+            game.addParticles(e.x + Math.cos(e.aimAngle) * 16, e.y + Math.sin(e.aimAngle) * 16, PALETTE.sniper, 5, 160, 0.2, 2.5);
+            game.audio.sfx('hit');
+            e.chargeState = 'cooldown';
+            e.chargeTimer = 0;
+          }
+        } else if (e.chargeState === 'cooldown') {
+          e.chargeTimer += dt;
+          if (e.chargeTimer > 1.5) {
+            e.chargeState = 'idle';
+            e.shootTimer = randomRange(game.rng, 0.4, 1.1);
+          }
+        } else {
+          e.shootTimer -= dt;
+          if (e.shootTimer <= 0 && dist < 680 && player.alive) {
+            e.chargeState = 'aim';
+            e.chargeTimer = 0;
+            e.aimAngle = Math.atan2(dy, dx);
+          }
+        }
+        break;
+      }
+      case 'orbiter': {
+        // Circle the player at mid range, drifting in or out to hold its orbit,
+        // and lob a slow orb whenever it has a shot.
+        e.orbitPhase += dt * 1.6;
+        const want = 195;
+        const radial = Math.max(-1, Math.min(1, (dist - want) / 80));
+        const tx = -ny * e.orbitDir;
+        const ty = nx * e.orbitDir;
+        e.vx += ((nx * radial * 0.9 + tx) * e.speed - e.vx) * Math.min(1, dt * 4);
+        e.vy += ((ny * radial * 0.9 + ty) * e.speed - e.vy) * Math.min(1, dt * 4);
+        e.shootTimer -= dt;
+        if (e.shootTimer <= 0 && dist < 430 && player.alive) {
+          e.shootTimer = 2.8;
+          const a = Math.atan2(dy, dx);
+          game.enemyBullets.push(createBullet(e.x, e.y, a, 235, e.damage, false, 0, false));
           game.audio.sfx('hit');
         }
         break;
