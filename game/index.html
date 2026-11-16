@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LUMEN SIEGE — defend the last light</title>
+<link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+<div id="stage">
+  <canvas id="game" width="1280" height="720"></canvas>
+
+  <div id="hud" class="hidden">
+    <div class="hud-left">
+      <div class="hud-label">SCORE</div>
+      <div id="score" class="hud-value">0</div>
+      <div class="hud-label">BEST <span id="best">0</span></div>
+    </div>
+    <div class="hud-center">
+      <div class="hud-label">WAVE</div>
+      <div id="wave" class="hud-value">1</div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-label">HULL</div>
+      <div id="hpbar"><div id="hpfill"></div></div>
+      <div id="dashpips"></div>
+      <div id="combo" class="hidden">COMBO ×2</div>
+    </div>
+  </div>
+
+  <div id="bossbar" class="hidden">
+    <div class="hud-label">VOID HERALD</div>
+    <div id="bossfill-wrap"><div id="bossfill"></div></div>
+  </div>
+
+  <div id="banner" class="hidden"></div>
+
+  <div id="title-screen" class="overlay">
+    <h1 class="game-title">LUMEN SIEGE</h1>
+    <p class="tagline">The last light is yours to defend. Ten waves stand between the
+      Void and the Lumen Core — hold the line, Warden.</p>
+    <div class="controls">
+      <div><b>WASD / Arrows</b><span>move</span></div>
+      <div><b>Mouse</b><span>aim &amp; hold to fire</span></div>
+      <div><b>Space / Shift</b><span>dash (invulnerable)</span></div>
+      <div><b>P</b><span>pause</span></div>
+      <div><b>M</b><span>mute</span></div>
+    </div>
+    <p class="best-line">BEST SCORE <span id="title-best">0</span></p>
+    <p class="press-start">CLICK OR PRESS ENTER TO PLAY</p>
+    <p class="hint">Stand near the Lumen Core to mend your hull. Between waves, draft an upgrade.
+      Defeat the Void Herald on wave 10 to win.</p>
+  </div>
+
+  <div id="upgrade-screen" class="overlay hidden">
+    <h2>WAVE CLEAR</h2>
+    <p class="tagline">Choose an upgrade — click a card or press 1, 2 or 3.</p>
+    <div id="cards"></div>
+  </div>
+
+  <div id="pause-screen" class="overlay hidden">
+    <h2>PAUSED</h2>
+    <p class="press-start">PRESS P TO RESUME</p>
+  </div>
+
+  <div id="end-screen" class="overlay hidden">
+    <h2 id="end-title">VICTORY</h2>
+    <p id="end-sub" class="tagline"></p>
+    <div class="stats">
+      <div><span>SCORE</span><b id="end-score">0</b></div>
+      <div><span>BEST</span><b id="end-best">0</b></div>
+      <div><span>WAVE REACHED</span><b id="end-wave">1</b></div>
+      <div><span>ENEMIES DOWN</span><b id="end-kills">0</b></div>
+    </div>
+    <p class="press-start">PRESS ENTER TO PLAY AGAIN</p>
+  </div>
+
+  <div id="muted" class="hidden">MUTED — M TO UNMUTE</div>
+</div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
