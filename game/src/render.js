@@ -7,6 +7,8 @@ const ENEMY_COLORS = {
   drifter: PALETTE.drifter,
   wisp: PALETTE.wisp,
   spitter: PALETTE.spitter,
+  sniper: PALETTE.sniper,
+  orbiter: PALETTE.orbiter,
   splitter: PALETTE.splitter,
   mini: PALETTE.mini,
   brute: PALETTE.brute,
@@ -135,6 +137,21 @@ export function drawEntities(ctx, game) {
 
 function drawEnemy(ctx, e) {
   const color = ENEMY_COLORS[e.kind] || PALETTE.drifter;
+  // Sniper telegraph: a dashed aim line the player can step out of. It brightens
+  // once the aim locks (the last part of the charge), warning the shot is coming.
+  if (e.kind === 'sniper' && e.chargeState === 'aim') {
+    ctx.save();
+    const locked = e.chargeTimer >= 0.55;
+    ctx.globalAlpha = locked ? 0.75 : 0.35 + 0.2 * Math.sin(e.chargeTimer * 30);
+    ctx.strokeStyle = PALETTE.danger;
+    ctx.lineWidth = locked ? 2 : 1;
+    ctx.setLineDash([10, 8]);
+    ctx.beginPath();
+    ctx.moveTo(e.x, e.y);
+    ctx.lineTo(e.x + Math.cos(e.aimAngle) * 720, e.y + Math.sin(e.aimAngle) * 720);
+    ctx.stroke();
+    ctx.restore();
+  }
   ctx.save();
   ctx.translate(e.x, e.y);
   ctx.shadowColor = color;
@@ -165,6 +182,33 @@ function drawEnemy(ctx, e) {
       ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
     }
     ctx.closePath();
+    ctx.fill();
+  } else if (e.kind === 'sniper') {
+    // A kite with a bright eye; the eye swells while the shot charges.
+    ctx.beginPath();
+    ctx.moveTo(0, -e.radius);
+    ctx.lineTo(e.radius * 0.8, 0);
+    ctx.lineTo(0, e.radius);
+    ctx.lineTo(-e.radius * 0.8, 0);
+    ctx.closePath();
+    ctx.fill();
+    const charging = e.chargeState === 'aim';
+    ctx.fillStyle = charging ? '#ffffff' : 'rgba(0,0,0,0.4)';
+    ctx.beginPath();
+    ctx.arc(0, 0, e.radius * (charging ? 0.34 + 0.18 * (e.chargeTimer / 0.85) : 0.3), 0, Math.PI * 2);
+    ctx.fill();
+  } else if (e.kind === 'orbiter') {
+    // A spinning triangular ring around a small core.
+    ctx.rotate(e.orbitPhase);
+    ctx.beginPath();
+    for (let i = 0; i < 3; i++) {
+      const a = (i / 3) * Math.PI * 2;
+      ctx.lineTo(Math.cos(a) * e.radius, Math.sin(a) * e.radius);
+    }
+    ctx.closePath();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0, 0, e.radius * 0.42, 0, Math.PI * 2);
     ctx.fill();
   } else if (e.kind === 'splitter') {
     ctx.beginPath();
@@ -205,7 +249,7 @@ function drawEnemy(ctx, e) {
   ctx.restore();
 
   // Health bar for tough enemies.
-  if ((e.kind === 'brute' || e.kind === 'splitter' || e.kind === 'spitter' || e.kind === 'boss') && e.hp < e.maxHp) {
+  if ((e.kind === 'brute' || e.kind === 'splitter' || e.kind === 'spitter' || e.kind === 'sniper' || e.kind === 'boss') && e.hp < e.maxHp) {
     const w = e.radius * 2;
     ctx.save();
     ctx.fillStyle = 'rgba(0,0,0,0.5)';
