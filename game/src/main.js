@@ -92,6 +92,8 @@ class Hud {
   sync(game) {
     const score = String(game.score);
     if (this.scoreEl.textContent !== score) this.scoreEl.textContent = score;
+    const best = String(game.best);
+    if (this.bestEl.textContent !== best) this.bestEl.textContent = best;
     const wave = String(Math.max(1, game.wave));
     if (this.waveEl.textContent !== wave) this.waveEl.textContent = wave;
     const hpPct = Math.max(0, Math.round((game.player.hp / game.player.maxHp) * 100));

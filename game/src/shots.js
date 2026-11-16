@@ -67,6 +67,11 @@ export function runShot(game, hud, scene, seed) {
       const a = t * 1.4;
       scriptedInput(game, 880 + Math.cos(a) * 260, 330 + Math.sin(a) * 180, Math.cos(a * 0.7), Math.sin(a * 0.7), true);
     });
+    // Frame the warden in the lower-left third, aiming at the swarm.
+    game.player.x = 470;
+    game.player.y = 430;
+    game.player.angle = Math.atan2(300 - 430, 880 - 470);
+    game.input.setMouse(880, 300, true);
     game.render();
     hud.sync(game);
   } else if (scene === 'boss') {
@@ -95,6 +100,11 @@ export function runShot(game, hud, scene, seed) {
       if (Math.abs(t - 1.1) < STEP) game.input.setKey(' ', true);
       else game.input.setKey(' ', false);
     });
+    // Frame the warden in the lower-left, aiming up at the Herald.
+    game.player.x = 430;
+    game.player.y = 500;
+    game.player.angle = Math.atan2(300 - 500, 880 - 430);
+    game.input.setMouse(880, 300, true);
     game.render();
     hud.sync(game);
   } else if (scene === 'victory') {
@@ -103,6 +113,7 @@ export function runShot(game, hud, scene, seed) {
     game.kills = 214;
     game.wave = 10;
     game.player.hp = 41;
+    game.player.alive = false; // the warden stands down; the screen carries the moment
     game.addParticles(ARENA.width / 2, ARENA.height / 2, '#7fe7ff', 40, 260, 1.2, 3.5);
     game.addParticles(ARENA.width / 2, ARENA.height / 2, '#ffd166', 30, 200, 1.0, 3);
     game.winGame();
