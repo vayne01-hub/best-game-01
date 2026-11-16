@@ -138,7 +138,7 @@ html, body {
   justify-content: center;
   text-align: center;
   padding: 40px;
-  background: radial-gradient(ellipse at center, rgba(7, 10, 24, 0.74) 0%, rgba(4, 6, 15, 0.93) 100%);
+  background: radial-gradient(ellipse at center, rgba(7, 10, 24, 0.88) 0%, rgba(4, 6, 15, 0.95) 100%);
 }
 
 .game-title {
