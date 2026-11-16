@@ -3,7 +3,7 @@
 // clock) and sets window.__shotReady when the frame is painted. The scenes use
 // the game's own update and render code — nothing here is a mock.
 
-import { ARENA } from './config.js';
+import { ARENA, UPGRADE_POOL } from './config.js';
 import { createEnemy, createFloater } from './entities.js';
 import { mulberry32 } from './random.js';
 
@@ -110,6 +110,9 @@ export function runShot(game, hud, scene, seed) {
     game.enemies.push(mini);
     game.damageEnemy(mini, 999, { x: mini.x, y: mini.y });
     game.prune();
+    // A fresh burst on top, so the death explosion reads at full brightness.
+    game.addParticles(770, 315, '#fb923c', 22, 260, 0.6, 3.5);
+    game.addParticles(770, 315, '#ffd166', 12, 180, 0.5, 2.5);
     const sniper = game.enemies.find((e) => e.kind === 'sniper');
     if (sniper) {
       sniper.chargeState = 'aim';
@@ -127,6 +130,9 @@ export function runShot(game, hud, scene, seed) {
     game.spawnQueue = [];
     game.enemies = [];
     game.waveCleared(); // sets state 'upgrade' and drafts 3 cards via the seeded RNG
+    // Stage the draft to showcase three of the new v2 upgrades from the real pool.
+    game.upgradeChoices = ['prism', 'siphon', 'dashnova'].map((id) => UPGRADE_POOL.find((u) => u.id === id));
+    hud.showUpgrades(game.upgradeChoices);
     hud.bannerEl.classList.add('hidden');
     game.render();
     hud.sync(game);
