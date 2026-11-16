@@ -1,9 +1,9 @@
 // LUMEN SIEGE — the game itself: state machine, loop, collisions, scoring,
 // waves, upgrades, and the HUD. One Game owns the world; main.js boots it.
 
-import { ARENA, COMBO_STEP, COMBO_WINDOW, FINAL_WAVE, PALETTE, PLAYER, POWERUP_TYPES, UPGRADE_POOL } from './config.js';
+import { ARENA, COMBO_STEP, COMBO_WINDOW, FINAL_WAVE, PALETTE, PLAYER, POWERUP_TYPES, SURGE, UPGRADE_POOL } from './config.js';
 import { AudioEngine } from './audio.js';
-import { createEnemy, createFloater, createParticle, createPlayer, createPowerup, splitEnemy, updateBullets, updateEnemies, updateParticles, updatePlayer, updatePowerups } from './entities.js';
+import { createEnemy, createFloater, createParticle, createPlayer, createPowerup, edgeSpawn, splitEnemy, updateBullets, updateEnemies, updateParticles, updatePlayer, updatePowerups } from './entities.js';
 import { Input } from './input.js';
 import { mulberry32, clamp, distanceSq, randomChoice } from './random.js';
 import { drawEntities, drawWorld } from './render.js';
@@ -41,6 +41,8 @@ export class Game {
     this.hitStop = 0;
     this.upgradeChoices = [];
     this.boss = null;
+    this.surgeTimer = 0;
+    this.surgeCount = 0;
     this.stars = [];
     for (let i = 0; i < 90; i++) {
       this.stars.push({
@@ -129,6 +131,8 @@ export class Game {
     this.boss = null;
     this.shake = 0;
     this.hitStop = 0;
+    this.surgeTimer = 0;
+    this.surgeCount = 0;
   }
 
   startWave(n) {
@@ -136,8 +140,14 @@ export class Game {
     this.spawnQueue = buildWaveQueue(n, this.rng);
     this.spawnTimer = 0.8;
     this.boss = null;
+    this.surgeTimer = SURGE.interval;
+    this.surgeCount = 0;
     this.hud.setWave(n);
-    this.showBanner(n === FINAL_WAVE ? `FINAL WAVE ${n} — THE VOID HERALD` : `WAVE ${n}`);
+    this.showBanner(
+      n === FINAL_WAVE ? `FINAL WAVE ${n} — THE VOID HERALD`
+        : n >= SURGE.firstWave ? `WAVE ${n} — THE VOID SURGES`
+          : `WAVE ${n}`,
+    );
     if (this.spawnQueue.includes('boss')) this.audio.sfx('boss');
     else this.audio.sfx('wave');
   }
@@ -250,6 +260,15 @@ export class Game {
         this.spawnTimer = nextSpawnDelay(this.wave, this.spawnQueue.length);
       }
     }
+    // Late-wave modifier: on waves 8-10 the Void surges while the wave is live.
+    if (this.wave >= SURGE.firstWave && this.surgeCount < SURGE.maxPerWave) {
+      this.surgeTimer -= dt;
+      if (this.surgeTimer <= 0) {
+        this.surgeTimer = SURGE.interval;
+        this.surgeCount += 1;
+        this.triggerSurge();
+      }
+    }
     updateEnemies(this, dt);
     updateBullets(this, dt);
     updateParticles(this, dt);
@@ -271,6 +290,18 @@ export class Game {
     if (this.spawnQueue.length === 0 && this.enemies.length === 0 && this.state === 'playing') {
       this.waveCleared();
     }
+  }
+
+  // A surge pours a mixed pack in at the arena edges, mid-wave.
+  triggerSurge() {
+    const kinds = ['wisp', 'drifter', 'wisp', 'orbiter', 'drifter'];
+    for (let i = 0; i < SURGE.count; i++) {
+      const pos = edgeSpawn(this.rng, 30);
+      this.enemies.push(createEnemy(kinds[i % kinds.length], pos.x, pos.y, this.wave, this.rng));
+    }
+    this.floaters.push(createFloater(ARENA.width / 2, 150, 'VOID SURGE', PALETTE.danger));
+    this.shake = Math.min(14, this.shake + 4);
+    this.audio.sfx('boss');
   }
 
   // Ambient drift behind the title screen: a few wisps float by, nothing shoots.
